@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GO-Menu 点餐平台</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'PingFang SC', sans-serif; background-color: #f7f7f7; color: #333; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* 顶部 Banner */
+        .header { background: linear-gradient(135deg, #ff9900, #ff5500); color: white; padding: 20px; text-align: center; }
+        .header h1 { font-size: 24px; margin-bottom: 5px; letter-spacing: 1px; }
+        .header p { font-size: 13px; opacity: 0.9; }
+
+        /* 主体内容区域：左右分栏 */
+        .main-container { flex: 1; display: flex; overflow: hidden; background: white; }
+
+        /* 左侧分类导航 */
+        .sidebar { width: 85px; background-color: #f8f8f8; overflow-y: auto; height: 100%; border-right: 1px solid #eee; }
+        .category-btn { width: 100%; padding: 18px 10px; border: none; background: none; font-size: 14px; color: #666; cursor: pointer; text-align: center; border-left: 4px solid transparent; }
+        .category-btn.active { background: white; color: #ff5500; font-weight: bold; border-left-color: #ff5500; }
+
+        /* 右侧菜品列表 */
+        .menu-content { flex: 1; overflow-y: auto; height: 100%; padding: 10px; }
+        .category-section { display: none; }
+        .category-section.active { display: block; }
+        .section-title { font-size: 14px; color: #888; margin: 5px 0 12px 5px; }
+
+        /* 单个菜品卡片 */
+        .dish-card { display: flex; background: white; padding: 10px 5px; margin-bottom: 15px; border-bottom: 1px solid #f2f2f2; align-items: center; }
+        .dish-img { width: 75px; height: 75px; border-radius: 6px; object-fit: cover; margin-right: 12px; background-color: #eee; cursor: pointer; }
+        .dish-info { flex: 1; }
+        .dish-name { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+        .dish-desc { font-size: 12px; color: #999; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+        .dish-price { color: #ff4400; font-size: 16px; font-weight: bold; }
+        
+        /* 数量加减控制键 */
+        .control-box { display: flex; align-items: center; gap: 10px; }
+        .btn-calc { width: 24px; height: 24px; border-radius: 50%; border: 1px solid #ff5500; background: white; color: #ff5500; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-calc.add { background: #ff5500; color: white; }
+        .dish-count { font-size: 14px; min-width: 14px; text-align: center; }
+
+        /* 底部购物车栏 */
+        .cart-bar { height: 55px; background: #333; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; color: white; z-index: 10; }
+        .cart-info { font-size: 14px; }
+        .cart-total-price { font-size: 20px; font-weight: bold; color: #ff9900; margin-left: 5px; }
+        .btn-submit { background: #ff5500; border: none; color: white; height: 100%; padding: 0 30px; font-size: 16px; font-weight: bold; cursor: pointer; }
+
+        /* 弹窗：菜品详情介绍 */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 100; padding: 20px; }
+        .modal-content { background: white; border-radius: 12px; width: 100%; max-width: 320px; overflow: hidden; position: relative; text-align: center; padding-bottom: 20px; }
+        .modal-img { width: 100%; height: 200px; object-fit: cover; background-color: #eee; }
+        .modal-name { font-size: 18px; font-weight: bold; margin: 15px 0 8px; }
+        .modal-full-desc { font-size: 14px; color: #666; padding: 0 20px; margin-bottom: 15px; line-height: 1.4; }
+        .btn-close-modal { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: none; width: 26px; height: 26px; border-radius: 50%; font-size: 14px; cursor: pointer; }
+
+        /* 弹窗：订单总结明细 */
+        .summary-content { background: white; border-radius: 12px; width: 90%; max-width: 400px; padding: 20px; max-height: 80vh; overflow-y: auto; }
+        .summary-title { font-size: 18px; font-weight: bold; text-align: center; margin-bottom: 15px; border-bottom: 2px solid #ff5500; padding-bottom: 8px; }
+        .summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; }
+        .summary-total { text-align: right; font-size: 18px; font-weight: bold; color: #ff5500; border-top: 1px dashed #eee; padding-top: 10px; margin-top: 15px; }
+        .btn-confirm-order { width: 100%; background: #ff5500; color: white; border: none; padding: 12px; border-radius: 6px; font-size: 16px; margin-top: 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. 顶部 GO-Menu 介绍 -->
+    <div class="header">
+        <h1>GO-Menu</h1>
+        <p>欢迎来到 GO-Menu 智能点餐平台！美味无需等待，点击分类即可选购您的专属美食。</p>
+    </div>
+
+    <!-- 2. 中间主区域 -->
+    <div class="main-container">
+        <!-- 左侧分类导航 -->
+        <div class="sidebar">
+            <button class="category-btn active" onclick="switchCategory('zhushi', this)">主食</button>
+            <button class="category-btn" onclick="switchCategory('roulei', this)">肉类</button>
+            <button class="category-btn" onclick="switchCategory('haixian', this)">海鲜</button>
+            <button class="category-btn" onclick="switchCategory('shuce', this)">蔬菜</button>
+            <button class="category-btn" onclick="switchCategory('tiandian', this)">甜品</button>
+            <button class="category-btn" onclick="switchCategory('yinpin', this)">饮品</button>
+        </div>
+
+        <!-- 右侧菜品列表 -->
+        <div class="menu-content">
+            <!-- 主食分类 -->
+            <div id="zhushi" class="category-section active">
+                <div class="section-title">美味主食</div>
+                <div class="dish-card" data-id="1" data-name="丝苗白米饭" data-price="3" data-desc="精选优质大米，粒粒饱满，香甜软糯。">
+                    <img src="images/rice.jpg" class="dish-img" onclick="showDetail(this)">
+                    <div class="dish-info">
+                        <div class="dish-name">丝苗白米饭</div>
+                        <div class="dish-desc">精选优质大米，粒粒饱满，香甜软糯。</div>
+                        <div class="dish-price">￥3</div>
+                    </div>
+                    <div class="control-box">
+                        <button class="btn-calc minus" onclick="updateQty(this, -1)" style="display:none;">-</button>
+                        <span class="dish-count" style="display:none;">0</span>
+                        <button class="btn-calc add" onclick="updateQty(this, 1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 肉类分类 -->
+            <div id="roulei" class="category-section">
+                <div class="section-title">招牌肉类</div>
+                <div class="dish-card" data-id="2" data-name="经典红烧肉" data-price="48" data-desc="肥而不腻，瘦而不柴，老少皆宜的独家秘制红烧肉。">
+                    <img src="images/pork.jpg" class="dish-img" onclick="showDetail(this)">
+                    <div class="dish-info">
+                        <div class="dish-name">经典红烧肉</div>
+                        <div class="dish-desc">肥而不腻，瘦而不柴，老少皆宜。</div>
+                        <div class="dish-price">￥48</div>
+                    </div>
+                    <div class="control-box">
+                        <button class="btn-calc minus" onclick="updateQty(this, -1)" style="display:none;">-</button>
+                        <span class="dish-count" style="display:none;">0</span>
+                        <button class="btn-calc add" onclick="updateQty(this, 1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 海鲜分类 -->
+            <div id="haixian" class="category-section">
+                <div class="section-title">新鲜海鲜</div>
+                <div class="dish-card" data-id="3" data-name="蒜蓉粉丝蒸扇贝" data-price="58" data-desc="每日新鲜捕捞扇贝，搭配秘制蒜蓉酱和劲道粉丝，鲜美多汁。">
+                    <img src="images/scallop.jpg" class="dish-img" onclick="showDetail(this)">
+                    <div class="dish-info">
+                        <div class="dish-name">蒜蓉粉丝蒸扇贝</div>
+                        <div class="dish-desc">每日新鲜捕捞，蒜香浓郁，鲜美多汁。</div>
+                        <div class="dish-price">￥58</div>
+                    </div>
+                    <div class="control-box">
+                        <button class="btn-calc minus" onclick="updateQty(this, -1)" style="display:none;">-</button>
+                        <span class="dish-count" style="display:none;">0</span>
+                        <button class="btn-calc add" onclick="updateQty(this, 1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 其他分类（你可以照猫画虎在这里复制添加更多菜品） -->
+            <div id="shuce" class="category-section"><div class="section-title">时令蔬菜</div><p style="padding:10px;color:#999;">暂无菜品，可自行复制上方代码添加</p></div>
+            <div id="tiandian" class="category-section"><div class="section-title">精美甜品</div><p style="padding:10px;color:#999;">暂无菜品，可自行复制上方代码添加</p></div>
+            <div id="yinpin" class="category-section"><div class="section-title">潮流饮品</div><p style="padding:10px;color:#999;">暂无菜品，可自行复制上方代码添加</p></div>
+        </div>
+    </div>
+
+    <!-- 3. 底部购物车 -->
+    <div class="cart-bar">
+        <div class="cart-info">已点 <span id="total-count" style="color:#ff9900;font-weight:bold;">0</span> 件菜品，合计:<span class="cart-total-price">￥<span id="total-price">0</span></span></div>
+        <button class="btn-submit" onclick="showSummary()">提交订单</button>
+    </div>
+
+    <!-- 4. 弹窗：菜品详情 -->
+    <div id="detail-modal" class="modal">
+        <div class="modal-content">
+            <button class="btn-close-modal" onclick="closeModal('detail-modal')">X</button>
+            <img id="modal-img" src="" class="modal-img">
