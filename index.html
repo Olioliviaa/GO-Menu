@@ -73,7 +73,7 @@
 </head>
 <body>
 
-<!-- 隐藏iframe，用来提交谷歌表单，实现不跳转页面提交数据 -->
+<!-- 隐藏iframe，用来提交谷歌表单，不跳转页面 -->
 <iframe id="hidden_iframe" name="hidden_iframe" style="display:none;"></iframe>
 
 <header>🏠家宴点菜</header>
@@ -89,17 +89,16 @@
   <a href="#drinks">🧃 饮品</a>
 </div>
 
-<!-- 修正了action地址，指向接收表单回复的真实api接口 -->
-<form id="mainForm" target="hidden_iframe" action="https://google.com" method="POST" onsubmit="return handleFormSubmit()">
+<form id="mainForm" target="hidden_iframe" action="https://docs.google.com/forms/d/e/1FAIpQLSfXiYIxGED01pk1D49kdKUldVDgqhZi6MbXbvERzDDL1l6y7A/formResponse" method="POST">
   <!-- 隐藏域保存 Google Form 字段数据 -->
-  <input type="hidden" name="entry.1718134704" id="field_name">
-  <input type="hidden" name="entry.1491763174" id="field_note">
-  <input type="hidden" name="entry.1466046200" id="field_dishes">
+  <input type="hidden" name="entry.1080825637" id="field_name">
+  <input type="hidden" name="entry.2121342424" id="field_note">
+  <input type="hidden" name="entry.486359214" id="field_dishes">
 
 <div class="container">
   <div class="info-block">
     <div>你的姓名</div>
-    <input id="username" placeholder="请输入名字" required>
+    <input id="username" placeholder="请输入名字">
     <div style="margin-top:12px;">忌口 / 备注</div>
     <textarea id="remark" placeholder="不吃辣、过敏等"></textarea>
   </div>
@@ -153,8 +152,7 @@
         </div>
       </div>
       <div class="dish-item">
-        <img src="1.png" class="dish-img" alt="红烧橄榄" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-        <div class="dish-img" style="display:none;">图片位</div>
+        <img src="1.png" class="dish-img" alt="红烧橄榄">
         <div class="dish-body">
           <div class="dish-name">红烧橄榄</div>
           <div class="checkbox-wrap">
@@ -223,8 +221,7 @@
     <div class="category-title" id="soup">🍲 汤类</div>
     <div class="dish-list">
       <div class="dish-item">
-        <img src="1.png" class="dish-img" alt="上汤橄榄" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-        <div class="dish-img" style="display:none;">图片位</div>
+        <img src="1.png" class="dish-img" alt="上汤橄榄">
         <div class="dish-body">
           <div class="dish-name">上汤橄榄</div>
           <div class="checkbox-wrap">
@@ -248,54 +245,35 @@
 
   </div>
 
-  <!-- 补全了提交按钮 -->
-  <button type="submit" class="submit-btn">✅ 提交点菜</button>
+  <button class="submit-btn" type="submit">✅提交点菜</button>
 </div>
 </form>
 
-<!-- 提示弹窗组件 -->
-<div id="toast" class="toast">提交成功！</div>
+<div class="toast" id="toast">提交成功！</div>
 
-<!-- 提交控制逻辑 JavaScript -->
 <script>
-  function handleFormSubmit() {
-    // 1. 获取界面上用户输入的值
-    var nameVal = document.getElementById('username').value.trim();
-    var noteVal = document.getElementById('remark').value.trim();
-    
-    if(!nameVal) {
-      alert("请填写您的姓名！");
-      return false;
-    }
+const form = document.getElementById('mainForm');
+const iframe = document.getElementById('hidden_iframe');
+const toast = document.getElementById('toast');
 
-    // 2. 抓取所有被勾选的菜品名称
-    var checkedBoxes = document.querySelectorAll('.dish-check:checked');
-    var dishNames = [];
-    checkedBoxes.forEach(function(box) {
-      dishNames.push(box.getAttribute('data-name'));
-    });
-    
-    if(dishNames.length === 0) {
-      alert("请至少勾选一个菜品！");
-      return false;
-    }
+form.addEventListener('submit', function(e){
+  // 收集勾选菜品
+  const checks = document.querySelectorAll('.dish-check:checked');
+  const selected = Array.from(checks).map(cb=>cb.dataset.name).join('、');
 
-    // 3. 将捕获到的数据赋值给隐藏的 Google Form 表单元素
-    document.getElementById('field_name').value = nameVal;
-    document.getElementById('field_note').value = noteVal;
-    document.getElementById('field_dishes').value = dishNames.join(', ');
+  document.getElementById('field_name').value = document.getElementById('username').value;
+  document.getElementById('field_note').value = document.getElementById('remark').value;
+  document.getElementById('field_dishes').value = selected;
+});
 
-    // 4. 弹出提示框告知用户已提交
-    var toast = document.getElementById('toast');
-    toast.style.display = 'block';
-    setTimeout(function() {
-      toast.style.display = 'none';
-      // 提交完成后重置表单（非必选，可根据需要保留）
-      document.getElementById('mainForm').reset();
-    }, 2500);
-
-    return true; // 允许表单穿透到隐藏的 iframe 并发送到 Google
-  }
+iframe.onload = function(){
+  // iframe加载完成 = 提交完毕
+  toast.style.display='block';
+  setTimeout(()=>{
+    toast.style.display='none';
+    form.reset();
+  },1800);
+}
 </script>
 
 </body>
