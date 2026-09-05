@@ -9,40 +9,55 @@
   <style>
     *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;}
     html { scroll-behavior: smooth; }
-    body{background:#f7f8fa;padding-bottom:100px;}
+    body{background:#f7f8fa;padding-bottom:60px;}
     
-    /* 顶部标题与分类导航 */
+    /* 顶部标题 */
     header{background:#2c3e50;color:#fff;padding:16px;text-align:center;font-size:20px;font-weight:600;position:sticky;top:0;z-index:100;}
-    .category-nav {
+    
+    /* 主容器：左侧导航 + 右侧菜单 */
+    .layout-wrapper {
       display: flex;
-      overflow-x: auto;
-      background: #fff;
-      padding: 10px 8px;
-      border-bottom: 1px solid #eee;
-      position: sticky;
-      top: 55px;
-      z-index: 99;
-      white-space: nowrap;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      max-width: 900px;
+      margin: 0 auto;
+      align-items: flex-start;
     }
+
+    /* 左侧分类导航 */
+    .category-nav {
+      width: 90px;
+      flex-shrink: 0;
+      background: #fff;
+      position: sticky;
+      top: 57px;
+      height: calc(100vh - 57px);
+      overflow-y: auto;
+      border-right: 1px solid #eee;
+      display: flex;
+      flex-direction: column;
+      padding: 10px 4px;
+      box-shadow: 2px 0 4px rgba(0,0,0,0.03);
+    }
+
     .category-nav a {
       color: #555;
       text-decoration: none;
-      padding: 6px 14px;
-      margin: 0 4px;
-      border-radius: 16px;
+      padding: 10px 4px;
+      margin-bottom: 8px;
+      border-radius: 8px;
       background: #f0f2f5;
-      font-size: 14px;
-      flex-shrink: 0;
+      font-size: 13px;
       font-weight: 500;
+      text-align: center;
+      display: block;
     }
+    
     .category-nav a:hover, .category-nav a:active {
       background: #27ae60;
       color: #fff;
     }
 
-    /* 容器与模块 */
-    .container{max-width:720px;margin:0 auto;padding:16px;}
+    /* 右侧容器与模块 */
+    .container{flex:1;padding:12px;min-width:0;}
     .info-block{background:#fff;border-radius:12px;padding:14px;margin-bottom:16px;box-shadow:0 1px 4px #00000012;}
     input,textarea{width:100%;border:1px solid #ddd;border-radius:8px;padding:12px;font-size:16px;margin-top:8px;}
     textarea{min-height:70px;resize:none;}
@@ -51,256 +66,264 @@
     .category-title {
       font-size: 16px;
       font-weight: 600;
-      margin: 20px 0 10px 0;
+      margin: 16px 0 10px 0;
       padding-left: 8px;
       border-left: 4px solid #27ae60;
       color: #2c3e50;
-      scroll-margin-top: 110px;
+      scroll-margin-top: 70px;
     }
 
-    /* 菜品列表 */
-    .dish-list{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    /* 菜品列表：固定一行显示两个 */
+    .dish-list{
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
     .dish-item{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px #00000012;}
-    .dish-img{height:120px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;color:#999;font-size:14px;object-fit:cover;width:100%;}
-    .dish-body{padding:10px;}
-    .dish-name{font-size:15px;font-weight:500;margin-bottom:6px;}
+    .dish-img{height:100px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;color:#999;font-size:13px;object-fit:cover;width:100%;}
+    .dish-body{padding:8px;}
+    .dish-name{font-size:14px;font-weight:500;margin-bottom:6px;word-break:break-all;}
     .checkbox-wrap{display:flex;align-items:center;gap:6px;}
     
     .submit-btn{width:100%;background:#27ae60;color:#fff;border:none;border-radius:12px;padding:16px;font-size:17px;font-weight:600;margin-top:20px;cursor:pointer;}
     .tip{font-size:13px;color:#888;margin-top:6px;}
     .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:#fff;padding:14px 22px;border-radius:8px;display:none;z-index:9999;}
+
+    @media (max-width: 360px) {
+      .category-nav { width: 75px; }
+      .category-nav a { font-size: 11px; padding: 8px 2px; }
+      .container { padding: 8px; }
+      .dish-list { gap: 6px; }
+    }
   </style>
 </head>
 <body>
 
-<!-- 隐藏iframe，用来提交谷歌表单，不跳转页面 -->
 <iframe id="hidden_iframe" name="hidden_iframe" style="display:none;"></iframe>
 
 <header>🏠家宴点菜</header>
 
-<!-- 分类快速跳转导航栏 -->
-<div class="category-nav">
-  <a href="#staple">🍚 主食</a>
-  <a href="#meat">🥩 肉类</a>
-  <a href="#seafood">🦐 海鲜</a>
-  <a href="#veggies">🥬 蔬菜</a>
-  <a href="#soup">🍲 汤类</a>
-  <a href="#dessert">🍰 甜品</a>
-  <a href="#drinks">🧃 饮品</a>
-</div>
-
 <form id="mainForm" target="hidden_iframe" action="https://docs.google.com/forms/d/e/1FAIpQLSfXiYIxGED01pk1D49kdKUldVDgqhZi6MbXbvERzDDL1l6y7A/formResponse" method="POST">
-  <!-- 隐藏域保存 Google Form 字段数据 -->
   <input type="hidden" name="entry.1080825637" id="field_name">
   <input type="hidden" name="entry.2121342424" id="field_note">
   <input type="hidden" name="entry.486359214" id="field_dishes">
 
-<div class="container">
-  <div class="info-block">
-    <div>你的姓名</div>
-    <input id="username" placeholder="请输入名字">
-    <div style="margin-top:12px;">忌口 / 备注</div>
-    <textarea id="remark" placeholder="不吃辣、过敏等"></textarea>
+  <div class="layout-wrapper">
+    <div class="category-nav">
+      <a href="#staple">🍚 主食</a>
+      <a href="#meat">🥩 肉类</a>
+      <a href="#seafood">🦐 海鲜</a>
+      <a href="#veggies">🥬 蔬菜</a>
+      <a href="#soup">🍲 汤类</a>
+      <a href="#dessert">🍰 甜品</a>
+      <a href="#drinks">🧃 饮品</a>
+    </div>
+
+    <div class="container">
+      <div class="info-block">
+        <div>你的姓名</div>
+        <input id="username" placeholder="请输入名字">
+        <div style="margin-top:12px;">忌口 / 备注</div>
+        <textarea id="remark" placeholder="不吃辣、过敏等"></textarea>
+      </div>
+
+      <div class="info-block">
+        <div style="margin-bottom:10px;font-weight:500;">请选择菜品</div>
+        <div class="tip">可以勾选多个菜品</div>
+
+        <!-- 1. 主食 -->
+        <div class="category-title" id="staple">🍚 主食</div>
+        <div class="dish-list">
+          <div class="dish-item">
+            <div class="dish-img">图片位</div>
+            <div class="dish-body">
+              <div class="dish-name">白米饭</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="米饭">
+              </div>
+            </div>
+          </div>
+          <div class="dish-item">
+            <div class="dish-img">图片位</div>
+            <div class="dish-body">
+              <div class="dish-name">粗粮饭</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="米饭">
+              </div>
+            </div>
+          </div>
+          <div class="dish-item">
+            <div class="dish-img">图片位</div>
+            <div class="dish-body">
+              <div class="dish-name">面条</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="米饭">
+              </div>
+            </div>
+          </div>
+          <div class="dish-item">
+            <div class="dish-img">图片位</div>
+            <div class="dish-body">
+              <div class="dish-name">米线</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="米饭">
+              </div>
+            </div>
+          </div>
+          <div class="dish-item">
+            <div class="dish-img">图片位</div>
+            <div class="dish-body">
+              <div class="dish-name">白粥</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="米饭">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 肉类 -->
+        <div class="category-title" id="meat">🥩 肉类</div>
+        <div class="dish-list">
+          <div class="dish-item">
+            <div class="dish-img">图片位</div>
+            <div class="dish-body">
+              <div class="dish-name">红烧肉</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="红烧肉">
+              </div>
+            </div>
+          </div>
+          <div class="dish-item">
+            <div class="dish-img">图片位</div>
+            <div class="dish-body">
+              <div class="dish-name">清蒸鸡</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="清蒸鸡">
+              </div>
+            </div>
+          </div>
+          <div class="dish-item">
+            <div class="dish-img">图片位</div>
+            <div class="dish-body">
+              <div class="dish-name">铁板鱿鱼</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="铁板橄榄">
+              </div>
+            </div>
+          </div>
+          <div class="dish-item">
+            <img src="清蒸金鲳鱼.jpg" class="dish-img" alt="清蒸金鲳鱼">
+            <div class="dish-body">
+              <div class="dish-name">清蒸金鲳鱼</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="清蒸金鲳鱼">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 海鲜 -->
+        <div class="category-title" id="seafood">🦐 海鲜</div>
+        <div class="dish-list">
+          <div class="dish-item">
+            <div class="dish-img">图片位</div>
+            <div class="dish-body">
+              <div class="dish-name">清蒸金鲳鱼</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="清蒸金鲳鱼">
+              </div>
+            </div>
+          </div>
+          <div class="dish-item">
+            <div class="dish-img">图片位</div>
+            <div class="dish-body">
+              <div class="dish-name">白灼虾</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="白灼虾">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. 蔬菜 -->
+        <div class="category-title" id="veggies">🥬 蔬菜</div>
+        <div class="dish-list">
+          <div class="dish-item">
+            <div class="dish-img">图片位</div>
+            <div class="dish-body">
+              <div class="dish-name">蒜蓉扇贝</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="清蒸橄榄">
+              </div>
+            </div>
+          </div>
+          <div class="dish-item">
+            <div class="dish-img">图片位</div>
+            <div class="dish-body">
+              <div class="dish-name">咖喱鸡</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="炒橄榄">
+              </div>
+            </div>
+          </div>
+          <div class="dish-item">
+            <div class="dish-img">图片位</div>
+            <div class="dish-body">
+              <div class="dish-name">清炒时蔬</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="炒时蔬">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. 汤类 -->
+        <div class="category-title" id="soup">🍲 汤类</div>
+        <div class="dish-list">
+          <div class="dish-item">
+            <img src="1.png" class="dish-img" alt="上汤橄榄">
+            <div class="dish-body">
+              <div class="dish-name">玉米排骨汤</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="上汤橄榄">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. 甜品 -->
+        <div class="category-title" id="dessert">🍰 甜品</div>
+        <div class="dish-list">
+          <div class="dish-item">
+            <div class="dish-img">图片位</div>
+            <div class="dish-body">
+              <div class="dish-name">绿豆糖水</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="绿豆糖水">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. 饮品 -->
+        <div class="category-title" id="drinks">🧃 饮品</div>
+        <div class="dish-list">
+          <div class="dish-item">
+            <div class="dish-img">图片位</div>
+            <div class="dish-body">
+              <div class="dish-name">柠檬水</div>
+              <div class="checkbox-wrap">
+                <input type="checkbox" class="dish-check" data-name="柠檬水">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <button class="submit-btn" type="submit">✅提交点菜</button>
+    </div>
   </div>
-
-  <div class="info-block">
-    <div style="margin-bottom:10px;font-weight:500;">请选择菜品</div>
-    <div class="tip">可以勾选多个菜品</div>
-
-    <!-- 1. 主食 -->
-    <div class="category-title" id="staple">🍚 主食</div>
-    <div class="dish-list">
-      <div class="dish-item">
-        <div class="dish-img">图片位</div>
-        <div class="dish-body">
-          <div class="dish-name">白米饭</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="米饭">
-          </div>
-        </div>
-      </div>
-            <div class="dish-item">
-        <div class="dish-img">图片位</div>
-        <div class="dish-body">
-          <div class="dish-name">粗粮饭</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="米饭">
-          </div>
-        </div>
-      </div>
-                  <div class="dish-item">
-        <div class="dish-img">图片位</div>
-        <div class="dish-body">
-          <div class="dish-name">面条</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="米饭">
-          </div>
-        </div>
-      </div>
-                  <div class="dish-item">
-        <div class="dish-img">图片位</div>
-        <div class="dish-body">
-          <div class="dish-name">米线</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="米饭">
-          </div>
-        </div>
-      </div>
-            <div class="dish-item">
-        <div class="dish-img">图片位</div>
-        <div class="dish-body">
-          <div class="dish-name">白粥</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="米饭">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. 肉类 -->
-    <div class="category-title" id="meat">🥩 肉类</div>
-    <div class="dish-list">
-      <div class="dish-item">
-        <div class="dish-img">图片位</div>
-        <div class="dish-body">
-          <div class="dish-name">红烧肉</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="红烧肉">
-          </div>
-        </div>
-      </div>
-      <div class="dish-item">
-        <div class="dish-img">图片位</div>
-        <div class="dish-body">
-          <div class="dish-name">清蒸鸡</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="清蒸鸡">
-          </div>
-        </div>
-      </div>
-      <div class="dish-item">
-        <div class="dish-img">图片位</div>
-        <div class="dish-body">
-          <div class="dish-name">铁板鱿鱼</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="铁板橄榄">
-          </div>
-        </div>
-      </div>
-      <div class="dish-item">
-        <img src="清蒸金鲳鱼.jpg" class="dish-img" alt="清蒸金鲳鱼">
-        <div class="dish-body">
-          <div class="dish-name">清蒸金鲳鱼</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="清蒸金鲳鱼">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. 海鲜 -->
-    <div class="category-title" id="seafood">🦐 海鲜</div>
-    <div class="dish-list">
-      <div class="dish-item">
-        <div class="dish-img">图片位</div>
-        <div class="dish-body">
-          <div class="dish-name">清蒸金鲳鱼</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="清蒸金鲳鱼">
-          </div>
-        </div>
-      </div>
-      <div class="dish-item">
-        <div class="dish-img">图片位</div>
-        <div class="dish-body">
-          <div class="dish-name">白灼虾</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="白灼虾">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. 蔬菜 -->
-    <div class="category-title" id="veggies">🥬 蔬菜</div>
-    <div class="dish-list">
-      <div class="dish-item">
-        <div class="dish-img">图片位</div>
-        <div class="dish-body">
-          <div class="dish-name">蒜蓉扇贝</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="清蒸橄榄">
-          </div>
-        </div>
-      </div>
-      <div class="dish-item">
-        <div class="dish-img">图片位</div>
-        <div class="dish-body">
-          <div class="dish-name">咖喱鸡</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="炒橄榄">
-          </div>
-        </div>
-      </div>
-      <div class="dish-item">
-        <div class="dish-img">图片位</div>
-        <div class="dish-body">
-          <div class="dish-name">清炒时蔬</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="炒时蔬">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 5. 汤类 -->
-    <div class="category-title" id="soup">🍲 汤类</div>
-    <div class="dish-list">
-      <div class="dish-item">
-        <img src="1.png" class="dish-img" alt="上汤橄榄">
-        <div class="dish-body">
-          <div class="dish-name">玉米排骨汤</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="上汤橄榄">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 6. 甜品 -->
-    <div class="category-title" id="dessert">🍰 甜品</div>
-    <div class="dish-list">
-      <div class="dish-item">
-        <div class="dish-img">图片位</div>
-        <div class="dish-body">
-          <div class="dish-name">绿豆糖水</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="绿豆糖水">
-          </div>
-        </div>
-      </div>
-      <!-- 可在这里补充甜品 -->
-    </div>
-
-    <!-- 7. 饮品 -->
-    <div class="category-title" id="drinks">🧃 饮品</div>
-    <div class="dish-list">
-      <!-- 可在这里补充饮品 -->
-            <div class="dish-item">
-        <div class="dish-img">图片位</div>
-        <div class="dish-body">
-          <div class="dish-name">柠檬水</div>
-          <div class="checkbox-wrap">
-            <input type="checkbox" class="dish-check" data-name="柠檬水">
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <button class="submit-btn" type="submit">✅提交点菜</button>
-</div>
 </form>
 
 <div class="toast" id="toast">提交成功！</div>
@@ -311,7 +334,6 @@ const iframe = document.getElementById('hidden_iframe');
 const toast = document.getElementById('toast');
 
 form.addEventListener('submit', function(e){
-  // 收集勾选菜品
   const checks = document.querySelectorAll('.dish-check:checked');
   const selected = Array.from(checks).map(cb=>cb.dataset.name).join('、');
 
@@ -321,7 +343,6 @@ form.addEventListener('submit', function(e){
 });
 
 iframe.onload = function(){
-  // iframe加载完成 = 提交完毕
   toast.style.display='block';
   setTimeout(()=>{
     toast.style.display='none';
